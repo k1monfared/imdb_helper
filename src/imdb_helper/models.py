@@ -1,6 +1,6 @@
 """Data models for movie information."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -30,3 +30,7 @@ class MovieDetails:
     director: str | None
     cast: list[str]
     synopsis: str | None
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization."""
+        return asdict(self)

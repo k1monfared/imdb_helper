@@ -1,51 +1,60 @@
-"""Output formatting for console and loglog formats."""
+"""Output formatting for JSON, console, and loglog formats."""
 
-from .models import MovieDetails
+import json
 
 
-def display_movie_console(movie: MovieDetails) -> None:
-    """Print movie details to console in human-readable format."""
-    print(f"\n{'=' * 60}")
-    print(f"  {movie.title} ({movie.year or 'N/A'})")
-    print(f"{'=' * 60}")
-    print(f"  Rating:    {movie.rating or 'N/A'}/10")
-    print(f"  Genres:    {', '.join(movie.genres) if movie.genres else 'N/A'}")
-    print(f"  Country:   {', '.join(movie.countries) if movie.countries else 'N/A'}")
-    print(f"  Duration:  {movie.duration or 'N/A'}")
-    print(f"  Released:  {movie.release_date or 'N/A'}")
-    print(f"  Director:  {movie.director or 'N/A'}")
-    print(f"  Cast:      {', '.join(movie.cast[:5]) if movie.cast else 'N/A'}")
-    print()
-    print(f"  Synopsis:")
-    synopsis = movie.synopsis or "No synopsis available."
+def format_json(data: dict) -> str:
+    """Format movie data as JSON."""
+    return json.dumps(data, indent=2)
+
+
+def format_console(data: dict) -> str:
+    """Format movie data for console display."""
+    lines = []
+    lines.append(f"\n{'=' * 60}")
+    lines.append(f"  {data['title']} ({data['year'] or 'N/A'})")
+    lines.append(f"{'=' * 60}")
+    lines.append(f"  Rating:    {data['rating'] or 'N/A'}/10")
+    lines.append(f"  Genres:    {', '.join(data['genres']) if data['genres'] else 'N/A'}")
+    lines.append(f"  Country:   {', '.join(data['countries']) if data['countries'] else 'N/A'}")
+    lines.append(f"  Duration:  {data['duration'] or 'N/A'}")
+    lines.append(f"  Released:  {data['release_date'] or 'N/A'}")
+    lines.append(f"  Director:  {data['director'] or 'N/A'}")
+    lines.append(f"  Cast:      {', '.join(data['cast'][:5]) if data['cast'] else 'N/A'}")
+    lines.append("")
+    lines.append("  Synopsis:")
+
+    synopsis = data["synopsis"] or "No synopsis available."
     # Wrap long synopsis
     words = synopsis.split()
     line = "  "
     for word in words:
         if len(line) + len(word) + 1 > 58:
-            print(line)
+            lines.append(line)
             line = "  " + word
         else:
             line = line + " " + word if line != "  " else line + word
     if line.strip():
-        print(line)
-    print(f"{'=' * 60}\n")
+        lines.append(line)
+    lines.append(f"{'=' * 60}\n")
+
+    return "\n".join(lines)
 
 
-def format_movie_loglog(movie: MovieDetails) -> str:
-    """Format movie details in loglog format."""
+def format_loglog(data: dict) -> str:
+    """Format movie data in loglog format."""
     lines = [
-        f"- {movie.title}",
-        f"    - Year: {movie.year or 'N/A'}",
-        f"    - Rating: {movie.rating or 'N/A'}/10",
-        f"    - Genres: {', '.join(movie.genres) if movie.genres else 'N/A'}",
-        f"    - Country: {', '.join(movie.countries) if movie.countries else 'N/A'}",
-        f"    - Duration: {movie.duration or 'N/A'}",
-        f"    - Released: {movie.release_date or 'N/A'}",
-        f"    - Director: {movie.director or 'N/A'}",
+        f"- {data['title']}",
+        f"    - Year: {data['year'] or 'N/A'}",
+        f"    - Rating: {data['rating'] or 'N/A'}/10",
+        f"    - Genres: {', '.join(data['genres']) if data['genres'] else 'N/A'}",
+        f"    - Country: {', '.join(data['countries']) if data['countries'] else 'N/A'}",
+        f"    - Duration: {data['duration'] or 'N/A'}",
+        f"    - Released: {data['release_date'] or 'N/A'}",
+        f"    - Director: {data['director'] or 'N/A'}",
         f"    - Cast:",
     ]
-    for actor in (movie.cast or [])[:5]:
+    for actor in (data["cast"] or [])[:5]:
         lines.append(f"        - {actor}")
-    lines.append(f"    - Synopsis: {movie.synopsis or 'N/A'}")
+    lines.append(f"    - Synopsis: {data['synopsis'] or 'N/A'}")
     return "\n".join(lines)

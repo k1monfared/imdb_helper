@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from .display import display_movie_console, format_movie_loglog
+from .display import format_console, format_json, format_loglog
 from .menu import show_movie_menu
 from .search import SearchError, get_movie_details, search_movies, should_skip_menu
 
@@ -31,12 +31,22 @@ def parse_args() -> argparse.Namespace:
         type=str,
         help="Filter by director name",
     )
-    parser.add_argument(
+
+    # Output format options (mutually exclusive)
+    format_group = parser.add_mutually_exclusive_group()
+    format_group.add_argument(
+        "-j",
+        "--json",
+        action="store_true",
+        help="Output in JSON format",
+    )
+    format_group.add_argument(
         "-l",
         "--loglog",
         action="store_true",
         help="Output in loglog format",
     )
+
     parser.add_argument(
         "-n",
         "--no-menu",
@@ -94,10 +104,16 @@ def main() -> None:
         print(f"Fetching details for '{selected.title}'...", file=sys.stderr)
         details = get_movie_details(selected.imdb_id)
 
-        if args.loglog:
-            print(format_movie_loglog(details))
+        # Convert to dict (JSON) as intermediate format
+        data = details.to_dict()
+
+        # Output in requested format
+        if args.json:
+            print(format_json(data))
+        elif args.loglog:
+            print(format_loglog(data))
         else:
-            display_movie_console(details)
+            print(format_console(data))
 
     except SearchError as e:
         print(f"Error: {e}", file=sys.stderr)
