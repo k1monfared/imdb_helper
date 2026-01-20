@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/imdb_helper/__init__.py
+src/imdb_helper/__main__.py
+src/imdb_helper/cli.py
+src/imdb_helper/display.py
+src/imdb_helper/menu.py
+src/imdb_helper/models.py
+src/imdb_helper/search.py
+src/imdb_helper.egg-info/PKG-INFO
+src/imdb_helper.egg-info/SOURCES.txt
+src/imdb_helper.egg-info/dependency_links.txt
+src/imdb_helper.egg-info/entry_points.txt
+src/imdb_helper.egg-info/requires.txt
+src/imdb_helper.egg-info/top_level.txt

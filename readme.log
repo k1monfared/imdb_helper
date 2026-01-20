@@ -1,0 +1,12 @@
+- features
+    - for a given movie name find all matches (or close matches) in imdb data set and clarify with the user step by step to figure out which one is the one they have in mind. This should be a list of all the (close) matches with the name of movie, name of director, first two main characters if any, and a very brief synopsis of the movie, and the year it was released. this should be an interactive menue that user can use up and down keys to select the correct movie and hit enter to confirm.
+    - in case the movie name is clear, or other information are provided don't go through the interactive menu and directly select the movie
+    - once the movie is selected fetch relevant data from imdb including
+        - movie rating
+        - movie genre
+        - movie duration
+        - movie release date
+        - movie director
+        - main cast
+        - brief synopsis
+    - provide an option to write the information in a loglog format
