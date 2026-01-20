@@ -29,6 +29,24 @@ pip install .
 pip install -e .
 ```
 
+## Getting an OMDb API Key
+
+1. Go to https://www.omdbapi.com/apikey.aspx
+2. Select "FREE! (1,000 daily limit)" for the free tier
+3. Enter your email address and a description (e.g., "personal movie lookup")
+4. Click "Submit"
+5. Check your email for the API key (check spam folder if not received)
+6. Click the activation link in the email to activate your key
+
+### Rate Limits
+
+| Plan | Daily Requests | Cost |
+|------|----------------|------|
+| Free | 1,000 | $0 |
+| Patron | 100,000 | $1/month |
+
+The free tier is sufficient for personal use. If you exceed the daily limit, requests will fail until the next day (resets at midnight UTC).
+
 ## Configuration
 
 Set your OMDb API key as an environment variable:
