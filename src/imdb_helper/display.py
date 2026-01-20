@@ -3,9 +3,16 @@
 import json
 
 
+def _imdb_url(imdb_id: str) -> str:
+    """Generate IMDb URL from movie ID."""
+    return f"https://www.imdb.com/title/{imdb_id}/"
+
+
 def format_json(data: dict) -> str:
     """Format movie data as JSON."""
-    return json.dumps(data, indent=2)
+    output = data.copy()
+    output["imdb_url"] = _imdb_url(data["imdb_id"])
+    return json.dumps(output, indent=2)
 
 
 def format_console(data: dict) -> str:
@@ -21,6 +28,7 @@ def format_console(data: dict) -> str:
     lines.append(f"  Released:  {data['release_date'] or 'N/A'}")
     lines.append(f"  Director:  {data['director'] or 'N/A'}")
     lines.append(f"  Cast:      {', '.join(data['cast'][:5]) if data['cast'] else 'N/A'}")
+    lines.append(f"  IMDb:      {_imdb_url(data['imdb_id'])}")
     lines.append("")
     lines.append("  Synopsis:")
 
@@ -57,4 +65,5 @@ def format_loglog(data: dict) -> str:
     for actor in (data["cast"] or [])[:5]:
         lines.append(f"        - {actor}")
     lines.append(f"    - Synopsis: {data['synopsis'] or 'N/A'}")
+    lines.append(f"    - IMDb: {_imdb_url(data['imdb_id'])}")
     return "\n".join(lines)
