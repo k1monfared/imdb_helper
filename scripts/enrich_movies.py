@@ -46,8 +46,8 @@ def parse_args() -> argparse.Namespace:
         "-f",
         "--file",
         type=Path,
-        default=Path("~/notes/movies"),
-        help="Path to movies file (default: ~/notes/movies)",
+        default=Path("~/public/notes/movies"),
+        help="Path to movies file (default: ~/public/notes/movies)",
     )
     parser.add_argument(
         "-n",
@@ -218,7 +218,7 @@ def find_imdb_match(
         return None
 
     # Try auto-selection first
-    auto_match = should_skip_menu(title, results, year_int, director_str)
+    auto_match = should_skip_menu(title, results, year_int)
     if auto_match:
         if verbose:
             print(f"  Auto-matched: {auto_match.title} ({auto_match.year})")

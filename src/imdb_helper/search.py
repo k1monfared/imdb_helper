@@ -1,7 +1,7 @@
 """Movie search and data retrieval using OMDb API."""
 
 import os
-from urllib.parse import quote
+import re
 
 import requests
 
@@ -28,6 +28,29 @@ def _get_api_key() -> str:
     return api_key
 
 
+def sanitize_query(query: str) -> str:
+    """Normalize a search query string."""
+    # Collapse multiple whitespace and strip
+    return re.sub(r"\s+", " ", query).strip()
+
+
+def detect_imdb_id(query: str) -> str | None:
+    """
+    Detect if the query is an IMDb ID or URL.
+
+    Returns the IMDb ID (e.g. "tt0133093") if detected, else None.
+    """
+    query = query.strip()
+    # Match IMDb ID directly: tt followed by digits
+    if re.fullmatch(r"tt\d+", query):
+        return query
+    # Match IMDb URL
+    match = re.search(r"imdb\.com/title/(tt\d+)", query)
+    if match:
+        return match.group(1)
+    return None
+
+
 def search_movies(query: str, max_results: int = 10) -> list[MovieSearchResult]:
     """
     Search for movies matching the query.
@@ -40,9 +63,9 @@ def search_movies(query: str, max_results: int = 10) -> list[MovieSearchResult]:
         List of MovieSearchResult for menu display
     """
     api_key = _get_api_key()
+    query = sanitize_query(query)
 
     try:
-        # OMDb search endpoint
         params = {"apikey": api_key, "s": query, "type": "movie"}
         response = requests.get(OMDB_API_URL, params=params, timeout=10)
         response.raise_for_status()
@@ -56,10 +79,20 @@ def search_movies(query: str, max_results: int = 10) -> list[MovieSearchResult]:
 
         search_results = []
         for item in data.get("Search", [])[:max_results]:
-            # Fetch additional details for each result
-            details = _fetch_movie_by_id(item["imdbID"], api_key)
-            if details:
-                search_results.append(_to_search_result(details))
+            year_str = item.get("Year", "")
+            year = None
+            if year_str:
+                try:
+                    year = int(year_str.split("–")[0].split("-")[0])
+                except ValueError:
+                    pass
+            search_results.append(
+                MovieSearchResult(
+                    imdb_id=item.get("imdbID", ""),
+                    title=item.get("Title", "Unknown"),
+                    year=year,
+                )
+            )
 
         return search_results
 
@@ -111,7 +144,6 @@ def should_skip_menu(
     query: str,
     results: list[MovieSearchResult],
     year: int | None = None,
-    director: str | None = None,
 ) -> MovieSearchResult | None:
     """
     Determine if we can skip the interactive menu.
@@ -119,13 +151,12 @@ def should_skip_menu(
     Skip conditions:
     1. Only one result returned
     2. First result is exact title match (case-insensitive)
-    3. Year and/or director provided and matches exactly one result
+    3. Year filter narrows results to exactly one match
 
     Args:
         query: Original search query
         results: Search results to evaluate
         year: Optional year filter
-        director: Optional director filter
 
     Returns:
         The auto-selected movie, or None if menu needed
@@ -142,56 +173,13 @@ def should_skip_menu(
     if len(exact_matches) == 1:
         return exact_matches[0]
 
-    # Condition 3: Additional filters narrow to one result
-    filtered = results
+    # Condition 3: Year filter narrows to one result
     if year:
-        filtered = [r for r in filtered if r.year == year]
-    if director:
-        filtered = [
-            r
-            for r in filtered
-            if r.director and director.lower() in r.director.lower()
-        ]
-
-    if len(filtered) == 1:
-        return filtered[0]
+        filtered = [r for r in results if r.year == year]
+        if len(filtered) == 1:
+            return filtered[0]
 
     return None  # Show menu
-
-
-def _to_search_result(data: dict) -> MovieSearchResult:
-    """Convert OMDb response to MovieSearchResult."""
-    # Parse year (may be "2010" or "2010-2015" for series)
-    year_str = data.get("Year", "")
-    year = None
-    if year_str:
-        try:
-            year = int(year_str.split("–")[0].split("-")[0])
-        except ValueError:
-            pass
-
-    # Get cast preview (first 2 actors)
-    actors = data.get("Actors", "")
-    cast_preview = [a.strip() for a in actors.split(",")[:2]] if actors and actors != "N/A" else []
-
-    # Get plot
-    plot = data.get("Plot", "")
-    synopsis_brief = None
-    if plot and plot != "N/A":
-        synopsis_brief = plot[:100] + "..." if len(plot) > 100 else plot
-
-    # Get director
-    director = data.get("Director", "")
-    director = director if director and director != "N/A" else None
-
-    return MovieSearchResult(
-        imdb_id=data.get("imdbID", ""),
-        title=data.get("Title", "Unknown"),
-        year=year,
-        director=director,
-        cast_preview=cast_preview,
-        synopsis_brief=synopsis_brief,
-    )
 
 
 def _to_movie_details(data: dict) -> MovieDetails:
@@ -246,7 +234,7 @@ def _to_movie_details(data: dict) -> MovieDetails:
         imdb_id=data.get("imdbID", ""),
         title=data.get("Title", "Unknown"),
         year=year,
-        rating=rating,
+        imdb_rating=rating,
         genres=genres,
         countries=countries,
         duration=duration,

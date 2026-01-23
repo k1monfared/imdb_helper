@@ -12,7 +12,7 @@ def format_json(data: dict) -> str:
     """Format movie data as JSON."""
     output = data.copy()
     output["imdb_url"] = _imdb_url(data["imdb_id"])
-    return json.dumps(output, indent=2)
+    return json.dumps(output, indent=4)
 
 
 def format_console(data: dict) -> str:
@@ -21,14 +21,14 @@ def format_console(data: dict) -> str:
     lines.append(f"\n{'=' * 60}")
     lines.append(f"  {data['title']} ({data['year'] or 'N/A'})")
     lines.append(f"{'=' * 60}")
-    lines.append(f"  Rating:    {data['rating'] or 'N/A'}/10")
-    lines.append(f"  Genres:    {', '.join(data['genres']) if data['genres'] else 'N/A'}")
-    lines.append(f"  Country:   {', '.join(data['countries']) if data['countries'] else 'N/A'}")
-    lines.append(f"  Duration:  {data['duration'] or 'N/A'}")
-    lines.append(f"  Released:  {data['release_date'] or 'N/A'}")
-    lines.append(f"  Director:  {data['director'] or 'N/A'}")
-    lines.append(f"  Cast:      {', '.join(data['cast'][:5]) if data['cast'] else 'N/A'}")
-    lines.append(f"  IMDb:      {_imdb_url(data['imdb_id'])}")
+    lines.append(f"  IMDB Rating: {data['imdb_rating'] or 'N/A'}/10")
+    lines.append(f"  Genres:      {', '.join(data['genres']) if data['genres'] else 'N/A'}")
+    lines.append(f"  Country:     {', '.join(data['countries']) if data['countries'] else 'N/A'}")
+    lines.append(f"  Duration:    {data['duration'] or 'N/A'}")
+    lines.append(f"  Released:    {data['release_date'] or 'N/A'}")
+    lines.append(f"  Director:    {data['director'] or 'N/A'}")
+    lines.append(f"  Cast:        {', '.join(data['cast'][:5]) if data['cast'] else 'N/A'}")
+    lines.append(f"  IMDb:        {_imdb_url(data['imdb_id'])}")
     lines.append("")
     lines.append("  Synopsis:")
 
@@ -54,7 +54,7 @@ def format_loglog(data: dict) -> str:
     lines = [
         f"- {data['title']}",
         f"    - Year: {data['year'] or 'N/A'}",
-        f"    - Rating: {data['rating'] or 'N/A'}/10",
+        f"    - IMDB Rating: {data['imdb_rating'] or 'N/A'}/10",
         f"    - Genres: {', '.join(data['genres']) if data['genres'] else 'N/A'}",
         f"    - Country: {', '.join(data['countries']) if data['countries'] else 'N/A'}",
         f"    - Duration: {data['duration'] or 'N/A'}",

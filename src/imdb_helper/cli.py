@@ -5,7 +5,14 @@ import sys
 
 from .display import format_console, format_json, format_loglog
 from .menu import show_movie_menu
-from .search import SearchError, get_movie_details, search_movies, should_skip_menu
+from .search import (
+    SearchError,
+    detect_imdb_id,
+    get_movie_details,
+    sanitize_query,
+    search_movies,
+    should_skip_menu,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -17,19 +24,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "query",
         nargs="+",
-        help="Movie name to search for",
+        help="Movie name, IMDb ID (e.g. tt0133093), or IMDb URL to look up",
     )
     parser.add_argument(
         "-y",
         "--year",
         type=int,
         help="Filter by release year",
-    )
-    parser.add_argument(
-        "-d",
-        "--director",
-        type=str,
-        help="Filter by director name",
     )
 
     # Output format options (mutually exclusive)
@@ -41,10 +42,16 @@ def parse_args() -> argparse.Namespace:
         help="Output in JSON format",
     )
     format_group.add_argument(
+        "-t",
+        "--text",
+        action="store_true",
+        help="Output in plain text format",
+    )
+    format_group.add_argument(
         "-l",
         "--loglog",
         action="store_true",
-        help="Output in loglog format",
+        help="Output in loglog format (default)",
     )
 
     parser.add_argument(
@@ -62,47 +69,46 @@ def main() -> None:
     query = " ".join(args.query)
 
     try:
-        # Search for movies
-        print(f"Searching for '{query}'...", file=sys.stderr)
-        results = search_movies(query)
+        # Check if query is an IMDb ID or URL
+        imdb_id = detect_imdb_id(query)
 
-        if not results:
-            print(f"No movies found for '{query}'", file=sys.stderr)
-            sys.exit(1)
-
-        # Check if we can skip the menu
-        selected = None
-        if args.no_menu:
-            selected = results[0]
+        if imdb_id:
+            print(f"Fetching details for '{imdb_id}'...", file=sys.stderr)
+            details = get_movie_details(imdb_id)
         else:
-            selected = should_skip_menu(query, results, args.year, args.director)
+            query = sanitize_query(query)
+            print(f"Searching for '{query}'...", file=sys.stderr)
+            results = search_movies(query)
 
-        # Show menu if needed
-        if selected is None:
-            # Apply filters for menu display if provided
-            filtered_results = results
-            if args.year:
-                filtered_results = [r for r in results if r.year == args.year]
-            if args.director:
-                filtered_results = [
-                    r
-                    for r in filtered_results
-                    if r.director and args.director.lower() in r.director.lower()
-                ]
-
-            if not filtered_results:
-                print("No movies match the specified filters.", file=sys.stderr)
+            if not results:
+                print(f"No movies found for '{query}'", file=sys.stderr)
                 sys.exit(1)
 
-            selected = show_movie_menu(filtered_results)
+            # Check if we can skip the menu
+            selected = None
+            if args.no_menu:
+                selected = results[0]
+            else:
+                selected = should_skip_menu(query, results, args.year)
 
-        if selected is None:
-            print("No movie selected.", file=sys.stderr)
-            sys.exit(0)
+            # Show menu if needed
+            if selected is None:
+                filtered_results = results
+                if args.year:
+                    filtered_results = [r for r in results if r.year == args.year]
 
-        # Fetch and display full details
-        print(f"Fetching details for '{selected.title}'...", file=sys.stderr)
-        details = get_movie_details(selected.imdb_id)
+                if not filtered_results:
+                    print("No movies match the specified filters.", file=sys.stderr)
+                    sys.exit(1)
+
+                selected = show_movie_menu(filtered_results)
+
+            if selected is None:
+                print("No movie selected.", file=sys.stderr)
+                sys.exit(0)
+
+            print(f"Fetching details for '{selected.title}'...", file=sys.stderr)
+            details = get_movie_details(selected.imdb_id)
 
         # Convert to dict (JSON) as intermediate format
         data = details.to_dict()
@@ -110,10 +116,11 @@ def main() -> None:
         # Output in requested format
         if args.json:
             print(format_json(data))
-        elif args.loglog:
-            print(format_loglog(data))
-        else:
+        elif args.text:
             print(format_console(data))
+        else:
+            # Default is loglog (also triggered by -l)
+            print(format_loglog(data))
 
     except SearchError as e:
         print(f"Error: {e}", file=sys.stderr)

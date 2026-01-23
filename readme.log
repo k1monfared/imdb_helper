@@ -14,3 +14,13 @@
     [x] and independent script that is built on top of this that reads from ~/notes/movies file using the loglog structure, i.e. by reading it in python from loglog app turning it into a tree, and then looking at each movie entry and checking what information is available, using the available ones to get the appropriate movie from imdb, and then filling in the missing information in the loglog tree, and finally writing back the updated tree to the ~/notes/movies. It should ensure that existing information is not overwritten, in case of conflicts it should "add" the new information in a way that both old and new information are preserved, and clarifying which one is user added and which one was fetched from imdb. This should all be done in python as an independent script that uses the main code as a library.
         script: scripts/enrich_movies.py
         usage: python scripts/enrich_movies.py [-f FILE] [-n/--dry-run] [-i/--interactive] [-v/--verbose]
+    [x] look up movies by their imdb id or url (auto-detect this)
+        - this is helpful when title search can't find a movie, the user can provide the imdb id or url directly and still get the data in nice formatted way
+    [x] sanitize input, e.g. when there is "'" in the title of the movie, it doesn't find it, need to wrap it in quotes to get the right output
+        [x] also other character might cause issues e.g. & % $ etc
+        - note: requests library URL-encodes params; shell quoting is required for special chars (e.g. imdb "it's a wonderful life")
+    [x] search results show title, year, and IMDb link (what the OMDb search API returns)
+    [x] make the default output be loglog format and provide option for text output that is the current default
+        - -t/--text for console output, -l/--loglog still works (default)
+    [x] take a look to see how many api calls the "search" function is making, I thought it should be 1, if not see how can that be optimized
+        - was 11-12 calls (1 search + 10 per-result detail fetches + 1 final), now 2 calls (1 search + 1 final detail fetch)
