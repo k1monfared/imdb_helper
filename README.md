@@ -19,7 +19,7 @@ A command-line tool for quick IMDb movie lookups using the OMDb API.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/k1monfared/imdb_helper.git
 cd imdb_helper
 
 # Install the package
@@ -152,10 +152,28 @@ Console format:
 ============================================================
 ```
 
+## Batch Processing Scripts
+
+The `scripts/` directory contains utilities for bulk movie data processing using [loglog](https://github.com/k1monfared/loglog) format files:
+
+| Script | Description |
+|--------|-------------|
+| `enrich_movies.py` | Enrich movie entries in a loglog file with IMDb data |
+| `enrich_new_movies.py` | Enrich only newly added movies (detected via git diff) |
+| `parse_nyt_section.py` | Parse and enrich NYT top 100 movie lists |
+| `clean_titles.py` | Clean and normalize movie titles |
+| `normalize_reviews.py` | Normalize review entries |
+| `dedupe_movies.py` | Deduplicate movie entries |
+| `dedupe_nyt.py` | Deduplicate NYT-sourced entries |
+| `remove_property.py` | Remove a specific property from entries |
+
+These scripts require the `loglog` Python package (`pip install loglog`).
+
 ## Dependencies
 
 - `requests` - HTTP library for API calls
 - `simple-term-menu` - Interactive terminal menu
+- `loglog` - Required by batch processing scripts
 
 ## License
 
